@@ -91,6 +91,4 @@ public class CommentAdapter extends BaseAdapter {
             ButterKnife.bind(this, view);
         }
     }
-
-    
 }
