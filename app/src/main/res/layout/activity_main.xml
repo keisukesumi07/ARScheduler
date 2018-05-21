@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/framelayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="jp.techacademy.sumi.keisuke.arscheduler.MainActivity">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    tools:context="jp.techacademy.sumi.keisuke.arscheduler.MainActivity"
+    >
+
 
 
     <android.opengl.GLSurfaceView
@@ -13,6 +14,7 @@
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         android:layout_gravity="top" />
+
 
 
     <android.support.design.widget.CoordinatorLayout
@@ -24,12 +26,12 @@
 
         <android.support.design.widget.FloatingActionButton
             android:id="@+id/fab"
+            app:backgroundTint="@color/colorPrimary"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom|end"
             android:layout_margin="16dp"
-            android:src="@drawable/plus"
-            app:backgroundTint="@color/colorPrimary" />
+            android:src="@drawable/plus" />
 
     </android.support.design.widget.CoordinatorLayout>
 

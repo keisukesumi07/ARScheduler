@@ -295,8 +295,6 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
         ButterKnife.bind(this);
 
 
-        frameLayout=(FrameLayout)findViewById(R.id.frame);
-
         thisactivity=this;
 
 
@@ -311,7 +309,6 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
         //adapter
         adapter = new CommentAdapter(this,list);
         listView.setAdapter(adapter);
-
 
 
 
@@ -658,7 +655,7 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
         @Override
         public void onReceive(final Context context, Intent intent) {
             if(intent.getAction().equals(ACTION_SET_CLANENDER)){
-                
+
                 mHandler = new Handler(Looper.getMainLooper());
 
                 mHandler.post(new Runnable() {

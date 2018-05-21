@@ -13,4 +13,6 @@ public class Comments {
         this.userIcon = userIcon;
         this.text = text;
     }
+
+
 }

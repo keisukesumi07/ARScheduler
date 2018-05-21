@@ -1,6 +1,9 @@
 package jp.techacademy.sumi.keisuke.arscheduler;
 
 import android.content.Context;
+import android.os.Handler;
+import android.os.Looper;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,13 +22,6 @@ public class CustomAdapter extends BaseAdapter {
         inflater = (LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
     }
 
-    public boolean add(String data){
-        boolean ress = list.add(data);
-        if(ress){
-            notifyDataSetChanged();
-        }
-        return ress;
-    }
 
     @Override
     public int getCount() {
@@ -54,5 +50,18 @@ public class CustomAdapter extends BaseAdapter {
         textView1.setText(item);
 
         return convertView;
+    }
+
+
+    //ここから追加
+    public void add(final String data){
+        new Handler(Looper.getMainLooper()).post(new Runnable(){
+            @Override
+            public void run() {
+                if(list.add(data)){
+                    notifyDataSetChanged();
+                }
+            }
+        });
     }
 }
