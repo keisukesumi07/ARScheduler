@@ -103,6 +103,8 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
 
     @BindView(R.id.list_comment)
     ListView mCommentListView;
+    CommentAdapter adapter;
+    Activity thisactivity;
 
     private static final int RC_PASSCHANGE = 1001;
 
@@ -124,6 +126,7 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
 
     Global global;
 
+    Handler mHandler;
 
 
 
@@ -154,6 +157,12 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
     private final ArrayList<Anchor> anchors = new ArrayList<>();
 
 
+    ArrayList<String> list;
+    FrameLayout frameLayout;
+    ListView listView;
+
+
+    boolean test=false;
 
 
 
@@ -178,20 +187,6 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
         surfaceView.setRenderer(this);
         surfaceView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
 
-
-//        ButterKnife.bind(this);
-//
-//        int authorId = 1; // 投稿者のユーザIDs
-//
-//        Drawable authorDrawable = getResources().getDrawable(R.drawable.ic_launcher_foreground);
-//        Drawable viewerDrawable = getResources().getDrawable(R.drawable.ic_launcher_foreground);
-//
-//        Comments[] comments = {
-//                new Comments(1, authorDrawable, "投稿ユーザ テスト1"),
-//                new Comments(2, viewerDrawable, "閲覧ユーザ テスト1"),
-//        };
-//
-//        mCommentListView.setAdapter(new CommentAdapter(this, authorId, comments));
 
 
 
@@ -300,21 +295,23 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
         ButterKnife.bind(this);
 
 
+        frameLayout=(FrameLayout)findViewById(R.id.frame);
+
+        thisactivity=this;
 
 
 
-        //表示する文字
+
+
+        //ListView
+        listView = (ListView)findViewById(R.id.list_comment);
         ArrayList<String> list = new ArrayList<String>();
         list.add("sample0");
-        list.add("sample1");
-        list.add("sample2");
-        list.add("sample3");
 
         //adapter
-        CustomAdapter adapter = new CustomAdapter(this,list);
+        adapter = new CommentAdapter(this,list);
+        listView.setAdapter(adapter);
 
-        list.add("test");
-        adapter.notifyDataSetChanged();
 
 
 
@@ -326,6 +323,7 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
     @Override
     protected void onResume() {
         super.onResume();
+
 
         if (session == null) {
             Exception exception = null;
@@ -389,7 +387,7 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
         surfaceView.onResume();
         displayRotationHelper.onResume();
 
-        //messageSnackbarHelper.showMessage(this, "Searching for surfaces...");
+
     }
 
     @Override
@@ -576,38 +574,6 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
 
 
 
-//    // permissionの確認
-//    public void checkPermission() {
-//        // 既に許可している
-//        if (ActivityCompat.checkSelfPermission(this,
-//                Manifest.permission.WRITE_EXTERNAL_STORAGE) ==
-//                PackageManager.PERMISSION_GRANTED){
-//        }
-//        // 拒否していた場合
-//        else{
-//            requestLocationPermission();
-//        }
-//    }
-
-//    // 許可を求める
-//    private void requestLocationPermission() {
-//        if (ActivityCompat.shouldShowRequestPermissionRationale(this,
-//                Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
-//            ActivityCompat.requestPermissions(this,
-//                    new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_PERMISSION);
-//
-//        } else {
-//            Toast toast =
-//                    Toast.makeText(this, "アプリ実行に許可が必要です", Toast.LENGTH_SHORT);
-//            toast.show();
-//
-//            ActivityCompat.requestPermissions(this,
-//                    new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE,},
-//                    REQUEST_PERMISSION);
-//
-//        }
-//    }
-
 //    private void reloadListView() {
 //        // Realmデータベースから、「全てのデータを取得して新しい日時順に並べた結果」を取得
 //        RealmResults<Task> taskRealmResults = mRealm.where(Task.class).findAllSorted("date", Sort.DESCENDING);
@@ -656,9 +622,7 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
 //
 //            AlarmManager alarmManager = (AlarmManager)getSystemService(ALARM_SERVICE);
 //            alarmManager.set(AlarmManager.RTC_WAKEUP, calender, resultPendingIntent);
-            Log.d("come","comehre");
-            Log.d("calender", String.valueOf(calender));
-            Log.d("calender", String.valueOf(id));
+
 
 
 
@@ -694,40 +658,16 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
         @Override
         public void onReceive(final Context context, Intent intent) {
             if(intent.getAction().equals(ACTION_SET_CLANENDER)){
-
-
-                Handler mHandler = new Handler(Looper.getMainLooper());
+                
+                mHandler = new Handler(Looper.getMainLooper());
 
                 mHandler.post(new Runnable() {
                     @Override
                     public void run() {
-                        // ここに処理
-                        int authorId = 1; // 投稿者のユーザIDs
-
-                        Drawable authorDrawable = getResources().getDrawable(R.drawable.ic_launcher_foreground);
-                        Drawable viewerDrawable = getResources().getDrawable(R.drawable.ic_launcher_foreground);
-
-                        Comments[] comments = {
-                                new Comments(1, authorDrawable, "投稿ユーザ テスト1"),
-                                new Comments(2, viewerDrawable, "閲覧ユーザ テスト1"),
-                        };
-
-                        mCommentListView.setAdapter(new CommentAdapter(context, authorId, comments));
-
-
-
-
-
-
+                        adapter.add("testtest");
                     }
                 });
                 Toast.makeText(context, "onReceive", Toast.LENGTH_SHORT).show();
-                Log.d("alarmtest","alarmhere0");
-
-
-
-                 // 上層のViewを再描画
-                Log.d("setfinish","alarmhere");
             }
         }
     }
