@@ -38,7 +38,7 @@ public class InputActivity extends AppCompatActivity {
 
     private int mYear, mMonth, mDay, mHour, mMinute;
     private Button mDateButton, mTimeButton;
-    private EditText mTitleEdit, mContentEdit,mCategoryEdit;
+    private EditText mTitleEdit, mContentEdit,mCategoryEdit,mPlaceEdit;
     private Task mTask;
     private View.OnClickListener mOnDateClickListener = new View.OnClickListener() {
         @Override
@@ -105,6 +105,7 @@ public class InputActivity extends AppCompatActivity {
         mTitleEdit = (EditText)findViewById(R.id.title_edit_text);
         mContentEdit = (EditText)findViewById(R.id.content_edit_text);
         mCategoryEdit=(EditText)findViewById(R.id.category_edit_text);
+        mPlaceEdit=(EditText)findViewById(R.id.place_edit_text) ;
 
         // EXTRA_TASK から Task の id を取得して、 id から Task のインスタンスを取得する
         Intent intent = getIntent();
@@ -126,6 +127,7 @@ public class InputActivity extends AppCompatActivity {
             mTitleEdit.setText(mTask.getTitle());
             mContentEdit.setText(mTask.getContents());
             mCategoryEdit.setText(mTask.getCategory());
+            mPlaceEdit.setText(mTask.getPlace());
 
             Calendar calendar = Calendar.getInstance();
             calendar.setTime(mTask.getDate());
@@ -144,6 +146,7 @@ public class InputActivity extends AppCompatActivity {
         EditText edit1 = (EditText) findViewById(R.id.title_edit_text);
         EditText edit2 = (EditText) findViewById(R.id.content_edit_text);
         EditText edit3 = (EditText) findViewById(R.id.category_edit_text);
+        EditText edit4 = (EditText) findViewById(R.id.place_edit_text);
 
 
         edit1.setOnKeyListener(new View.OnKeyListener() {
@@ -197,6 +200,21 @@ public class InputActivity extends AppCompatActivity {
         });
 
 
+        edit4.setOnKeyListener(new View.OnKeyListener() {
+            @Override
+            public boolean onKey(View v, int keyCode, KeyEvent event) {
+
+                if (event.getAction() == KeyEvent.ACTION_DOWN
+                        && keyCode == KeyEvent.KEYCODE_ENTER) {
+
+                    InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                    inputMethodManager.hideSoftInputFromWindow(v.getWindowToken(), 0);
+
+                    return true;
+                }
+                return false;
+            }
+        });
 
     }
 
@@ -226,13 +244,19 @@ public class InputActivity extends AppCompatActivity {
         String title = mTitleEdit.getText().toString();
         String content = mContentEdit.getText().toString();
         String category = mCategoryEdit.getText().toString();
+        String place = mPlaceEdit.getText().toString();
 
         mTask.setTitle(title);
         mTask.setContents(content);
         mTask.setCategory(category);
+        mTask.setPlace(place);
         GregorianCalendar calendar = new GregorianCalendar(mYear,mMonth,mDay,mHour,mMinute);
         Date date = calendar.getTime();
-        mTask.setDate(date);
+
+
+
+        String str=String.format("%02d", mHour)+":"+ String.format("%02d", mMinute);
+        mTask.setDate2(str);
 
         realm.copyToRealmOrUpdate(mTask);
         realm.commitTransaction();
@@ -245,31 +269,6 @@ public class InputActivity extends AppCompatActivity {
         intent.putExtra("id",mTask.getId());
         intent.putExtra("calender",calendar.getTimeInMillis());
         setResult(RESULT_OK, intent);
-
-
-
-
-
-
-
-//        Intent resultIntent = new Intent(getApplicationContext(), TaskAlarmReceiver.class);
-//        resultIntent.putExtra(MainActivity.EXTRA_TASK, mTask.getId());
-//        PendingIntent resultPendingIntent = PendingIntent.getBroadcast(
-//                this,
-//                mTask.getId(),
-//                resultIntent,
-//                PendingIntent.FLAG_UPDATE_CURRENT
-//        );
-//
-//
-//        AlarmManager alarmManager = (AlarmManager)getSystemService(ALARM_SERVICE);
-//        alarmManager.set(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), resultPendingIntent);
-//
-
-
-
-
-
     }
 
 }

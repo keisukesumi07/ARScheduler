@@ -7,13 +7,14 @@
     android:paddingLeft="8dp"
     android:paddingRight="16dp"
     android:paddingTop="8dp"
+    android:id="@+id/Linear"
     >
 
     <ImageView
         android:id="@+id/image_user_icon"
-        android:layout_width="34dp"
-        android:layout_height="34dp"
-        android:layout_marginRight="8dp" />
+        android:layout_width="8dp"
+        android:layout_height="8dp"
+        />
 
     <View
         android:layout_width="8dp"

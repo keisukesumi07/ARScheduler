@@ -8,6 +8,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import java.util.ArrayList;
@@ -16,6 +17,7 @@ public class CustomAdapter extends BaseAdapter {
 
     private ArrayList<String> list;
     private LayoutInflater inflater;
+    LinearLayout linearLayout;
 
     public CustomAdapter(Context context, ArrayList<String> list) {
         this.list = list;
@@ -54,7 +56,7 @@ public class CustomAdapter extends BaseAdapter {
 
 
     //ここから追加
-    public void add(final String data){
+    public void add(final String data,View view){
         new Handler(Looper.getMainLooper()).post(new Runnable(){
             @Override
             public void run() {

@@ -25,28 +25,47 @@
         android:layout_below="@id/title_edit_text"
         android:hint="内容" />
     <EditText
-        android:id="@+id/category_edit_text"
+        android:id="@+id/place_edit_text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/content_edit_text"
+        android:hint="場所" />
+    <EditText
+        android:id="@+id/category_edit_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/place_edit_text"
         android:hint="カテゴリ" />
+
     <Button
         android:id="@+id/date_button"
-        android:layout_width="0dp"
+        style="@style/Widget.AppCompat.Button.Borderless"
+        android:layout_width="118dp"
         android:layout_height="wrap_content"
-        android:layout_below="@id/category_edit_text"
         android:layout_alignParentStart="true"
+        android:layout_below="@id/category_edit_text"
+        android:layout_marginRight="16dp"
         android:layout_toLeftOf="@+id/times_button"
-        android:text="----/--/--"
-        style="@style/Widget.AppCompat.Button.Borderless" />
+        android:text="----/--/--" />
+
     <Button
-        android:id="@id/times_button"
+        android:id="@+id/times_button"
+        style="@style/Widget.AppCompat.Button.Borderless"
         android:layout_width="96dp"
         android:layout_height="wrap_content"
-        android:layout_below="@id/category_edit_text"
-        android:layout_alignParentRight="true"
-        android:text="--:--"
-        style="@style/Widget.AppCompat.Button.Borderless" />
+        android:layout_alignParentEnd="true"
+        android:layout_below="@+id/category_edit_text"
+        android:layout_marginEnd="122dp"
+        android:text="--:--" />
+
+    <Button
+        android:id="@+id/e_times_button"
+        style="@style/Widget.AppCompat.Button.Borderless"
+        android:layout_width="96dp"
+        android:layout_height="wrap_content"
+        android:layout_alignEnd="@+id/title_edit_text"
+        android:layout_below="@+id/category_edit_text"
+        android:text="--:--" />
     <Button
         android:id="@+id/done_button"
         android:layout_width="96dp"

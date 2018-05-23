@@ -45,6 +45,7 @@ import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.FrameLayout;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
@@ -159,6 +160,7 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
 
     ArrayList<String> list;
     FrameLayout frameLayout;
+    LinearLayout linearLayout;
     ListView listView;
 
 
@@ -189,16 +191,9 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
 
 
 
+        //floatボタンのメニューの登録
+        findViewById(R.id.fab).setOnClickListener(addlistClickListener);
 
-
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent = new Intent(MainActivity.this, InputActivity.class);
-                startActivityForResult(intent,RC_PASSCHANGE);
-            }
-        });
 
 
         // Realmの設定
@@ -277,11 +272,6 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
 
 
 
-        //グローバル変数を取得
-        global = (Global) this.getApplication();
-        //初期化
-        global.GlobalsAllInit();
-        global.thecontext=this;
 
 
 
@@ -295,31 +285,43 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
         ButterKnife.bind(this);
 
 
-        thisactivity=this;
-
-
-
-
 
         //ListView
         listView = (ListView)findViewById(R.id.list_comment);
         ArrayList<String> list = new ArrayList<String>();
-        list.add("sample0");
 
         //adapter
         adapter = new CommentAdapter(this,list);
         listView.setAdapter(adapter);
 
 
-
+        thisactivity=this;
         installRequested = false;
     }
 
 
 
+
+    View.OnClickListener addlistClickListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            Intent intent = new Intent(thisactivity, InputActivity.class);
+            startActivityForResult(intent, RC_PASSCHANGE);
+        }
+    };
+
     @Override
     protected void onResume() {
         super.onResume();
+
+        mHandler = new Handler(Looper.getMainLooper());
+        mHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                // ここに処理
+                adapter.notifyDataSetChanged();
+            }
+        });
 
 
         if (session == null) {
@@ -439,16 +441,42 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
         } catch (IOException e) {
             Log.e(TAG, "Failed to read an asset file", e);
         }
+        mHandler = new Handler(Looper.getMainLooper());
+        mHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                // ここに処理
+                adapter.notifyDataSetChanged();
+            }
+        });
     }
 
     @Override
     public void onSurfaceChanged(GL10 gl, int width, int height) {
         displayRotationHelper.onSurfaceChanged(width, height);
         GLES20.glViewport(0, 0, width, height);
+        mHandler = new Handler(Looper.getMainLooper());
+        mHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                // ここに処理
+                adapter.notifyDataSetChanged();
+            }
+        });
     }
 
     @Override
     public void onDrawFrame(GL10 gl) {
+
+        Log.d("here","move");
+        mHandler = new Handler(Looper.getMainLooper());
+        mHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                // ここに処理
+                adapter.notifyDataSetChanged();
+            }
+        });
         // Clear screen to notify driver it should not load any pixels from previous frame.
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
 
@@ -606,24 +634,6 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
             int id = data.getIntExtra("id",0);
 
 
-//            Intent resultIntent = new Intent(getApplicationContext(), AlarmReceiver.class);
-//            resultIntent.setAction(ACTION_TEXT_UPDATE);
-//            resultIntent.putExtra(MainActivity.EXTRA_TASK,id);
-//
-//            PendingIntent resultPendingIntent = PendingIntent.getBroadcast(
-//                    this,
-//                    id,
-//                    resultIntent,
-//                    PendingIntent.FLAG_CANCEL_CURRENT
-//            );
-//
-//            AlarmManager alarmManager = (AlarmManager)getSystemService(ALARM_SERVICE);
-//            alarmManager.set(AlarmManager.RTC_WAKEUP, calender, resultPendingIntent);
-
-
-
-
-
             Context context = this;
             //AlarmManagerを取得
             AlarmManager am = (AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
@@ -631,17 +641,14 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
             //PendingIntentを作成
             Intent intent = new Intent();
             intent.setAction(ACTION_SET_CLANENDER);
-            //AlarmManager#setRepeating()を使用する場合はflagはPendingIntent.FLAG_ONE_SHOTでは駄目(一回通知されて終了してしまう)
-            intent.putExtra(MainActivity.EXTRA_TASK,id);
-            PendingIntent pendingIntent = PendingIntent.getBroadcast(context, id, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+            intent.putExtra("id",id);
+            PendingIntent pendingIntent = PendingIntent.getBroadcast(this, id, intent, PendingIntent.FLAG_CANCEL_CURRENT);
 
             //AlarmManagerにPendingIntentを登録
-            //ELAPSED_REALTIME_WAKEUPは実機がSleep状態でもwakeしてIntentをBroadcastする
             am.set(AlarmManager.RTC_WAKEUP, calender, pendingIntent);
 
-            ButterKnife.bind(this);
-
         }
+
     }
 
 
@@ -651,24 +658,34 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
 
     public class AlarmReceiver extends BroadcastReceiver{
 
+        String str;
         //BroadcastReceiverを拡張したclassでAlarmManagerから発行されたIntentを受信した際の処理を記載
         @Override
         public void onReceive(final Context context, Intent intent) {
             if(intent.getAction().equals(ACTION_SET_CLANENDER)){
 
-                mHandler = new Handler(Looper.getMainLooper());
+                Task mTask;
+                int id = intent.getIntExtra("id",0);
 
+                Realm realm = Realm.getDefaultInstance();
+                mTask = realm.where(Task.class).equalTo("id", id).findFirst();
+
+                str=mTask.getTitle()+"\n"+mTask.getContents()+"\n"+mTask.getDate();
+
+
+                realm.close();
+
+                mHandler = new Handler(Looper.getMainLooper());
                 mHandler.post(new Runnable() {
                     @Override
                     public void run() {
-                        adapter.add("testtest");
+                        adapter.add(str);
                     }
                 });
                 Toast.makeText(context, "onReceive", Toast.LENGTH_SHORT).show();
             }
         }
     }
-
 
 
 }

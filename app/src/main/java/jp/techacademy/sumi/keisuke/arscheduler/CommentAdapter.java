@@ -11,6 +11,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 
@@ -28,6 +29,8 @@ public class CommentAdapter extends BaseAdapter {
     private final LayoutInflater mInflater;
     private final ArrayList<String> list;
 
+    View views;
+    LinearLayout linesr;
 
     public CommentAdapter(Context context, ArrayList<String> list) {
         this.list = list;
@@ -56,18 +59,16 @@ public class CommentAdapter extends BaseAdapter {
     public View getView(int position, View view, ViewGroup parent) {
         if (view == null) {
             view = mInflater.inflate(R.layout.list_item_viewer, null);
+            views=view;
         }
 
         TextView textView = view.findViewById(R.id.text_user_comment);
-        ImageView imageView = view.findViewById(R.id.image_user_icon);
 
         textView.setText(String.valueOf(position));
 
         String item = getItem(position);
         textView.setText(item);
 
-
-        Log.d("Commentadapter","setok");
 
         return view;
     }
