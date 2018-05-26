@@ -106,6 +106,7 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
     ListView mCommentListView;
     CommentAdapter adapter;
     Activity thisactivity;
+    ArrayList<String> list;
 
     private static final int RC_PASSCHANGE = 1001;
 
@@ -158,7 +159,6 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
     private final ArrayList<Anchor> anchors = new ArrayList<>();
 
 
-    ArrayList<String> list;
     FrameLayout frameLayout;
     LinearLayout linearLayout;
     ListView listView;
@@ -288,7 +288,7 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
 
         //ListView
         listView = (ListView)findViewById(R.id.list_comment);
-        ArrayList<String> list = new ArrayList<String>();
+        list = new ArrayList<String>();
 
         //adapter
         adapter = new CommentAdapter(this,list);
@@ -314,14 +314,9 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
     protected void onResume() {
         super.onResume();
 
-        mHandler = new Handler(Looper.getMainLooper());
-        mHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                // ここに処理
-                adapter.notifyDataSetChanged();
-            }
-        });
+        adapter.notifyDataSetChanged();
+        listView.setAdapter(adapter);
+
 
 
         if (session == null) {
@@ -431,7 +426,7 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
             backgroundRenderer.createOnGlThread(/*context=*/ this);
             planeRenderer.createOnGlThread(/*context=*/ this, "models/trigrid.png");
             pointCloudRenderer.createOnGlThread(/*context=*/ this);
-            virtualObject.createOnGlThread(/*context=*/ this, "models/andy.obj", "a");
+            virtualObject.createOnGlThread(/*context=*/ this, "models/andy.obj", "models/doraemon.png");
             virtualObject.setMaterialProperties(0.0f, 2.0f, 0.5f, 6.0f);
 
             virtualObjectShadow.createOnGlThread(this, "models/andy_shadow.obj", "models/andy_shadow.png");
@@ -441,42 +436,30 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
         } catch (IOException e) {
             Log.e(TAG, "Failed to read an asset file", e);
         }
-        mHandler = new Handler(Looper.getMainLooper());
-        mHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                // ここに処理
-                adapter.notifyDataSetChanged();
-            }
-        });
     }
 
     @Override
     public void onSurfaceChanged(GL10 gl, int width, int height) {
         displayRotationHelper.onSurfaceChanged(width, height);
         GLES20.glViewport(0, 0, width, height);
-        mHandler = new Handler(Looper.getMainLooper());
-        mHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                // ここに処理
-                adapter.notifyDataSetChanged();
-            }
-        });
     }
 
     @Override
     public void onDrawFrame(GL10 gl) {
 
-        Log.d("here","move");
+
+
         mHandler = new Handler(Looper.getMainLooper());
         mHandler.post(new Runnable() {
             @Override
             public void run() {
                 // ここに処理
-                adapter.notifyDataSetChanged();
+                listView.setAdapter(adapter);
             }
         });
+
+
+
         // Clear screen to notify driver it should not load any pixels from previous frame.
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
 
@@ -679,9 +662,13 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
                 mHandler.post(new Runnable() {
                     @Override
                     public void run() {
-                        adapter.add(str);
+                        list.add(str);
+                        adapter = new CommentAdapter(context,list);
+                        listView.setAdapter(adapter);
+                        adapter.notifyDataSetChanged();
                     }
                 });
+
                 Toast.makeText(context, "onReceive", Toast.LENGTH_SHORT).show();
             }
         }
