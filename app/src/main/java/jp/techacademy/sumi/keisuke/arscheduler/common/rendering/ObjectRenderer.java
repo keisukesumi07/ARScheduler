@@ -35,6 +35,7 @@ import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.nio.ShortBuffer;
+import java.util.HashMap;
 
 /** Renders an object loaded from an OBJ file in OpenGL. */
 public class ObjectRenderer {
@@ -107,6 +108,17 @@ public class ObjectRenderer {
   private float specular = 1.0f;
   private float specularPower = 6.0f;
 
+
+
+  //テストよう変数
+  private int _gl_prog;
+
+  private HashMap<String, Integer> _gl_vars;
+  private FloatBuffer _vertex_buffer;
+  private FloatBuffer _texture_buffer;
+
+  private int _draw_counter;
+
   public ObjectRenderer() {}
 
   /**
@@ -117,11 +129,11 @@ public class ObjectRenderer {
    * @param diffuseTextureAssetName Name of the PNG file containing the diffuse texture map.
    */
   public void createOnGlThread(Context context, String objAssetName, String diffuseTextureAssetName)
-      throws IOException {
+          throws IOException {
     final int vertexShader =
-        ShaderUtil.loadGLShader(TAG, context, GLES20.GL_VERTEX_SHADER, VERTEX_SHADER_NAME);
+            ShaderUtil.loadGLShader(TAG, context, GLES20.GL_VERTEX_SHADER, VERTEX_SHADER_NAME);
     final int fragmentShader =
-        ShaderUtil.loadGLShader(TAG, context, GLES20.GL_FRAGMENT_SHADER, FRAGMENT_SHADER_NAME);
+            ShaderUtil.loadGLShader(TAG, context, GLES20.GL_FRAGMENT_SHADER, FRAGMENT_SHADER_NAME);
 
     program = GLES20.glCreateProgram();
     GLES20.glAttachShader(program, vertexShader);
@@ -142,121 +154,131 @@ public class ObjectRenderer {
 
     lightingParametersUniform = GLES20.glGetUniformLocation(program, "u_LightingParameters");
     materialParametersUniform = GLES20.glGetUniformLocation(program, "u_MaterialParameters");
-    colorCorrectionParameterUniform =
-        GLES20.glGetUniformLocation(program, "u_ColorCorrectionParameters");
+    colorCorrectionParameterUniform = GLES20.glGetUniformLocation(program, "u_ColorCorrectionParameters");
 
     ShaderUtil.checkGLError(TAG, "Program parameters");
 
-//    // Read the texture.
+
+    Bitmap textureBitmap;
+    if(diffuseTextureAssetName.equals("a")){
+      String text = "Draw String";
+      //描画するテキスト
+      Paint objPaint = new Paint();
+      Canvas objCanvas;
+      int textSize = 10;
+      int textWidth = textSize * text.length(), textHeight = textSize;
+
+      objPaint.setAntiAlias(true);
+      objPaint.setColor(Color.RED);
+      objPaint.setTextSize(textSize);
+      Paint.FontMetrics fm = objPaint.getFontMetrics();
+      objPaint.getTextBounds(text, 0, text.length(), new Rect(0, 0, textWidth, textHeight));
+      //テキストの表示範囲を設定
+
+      textWidth = (int) objPaint.measureText(text);
+      textHeight = (int) (Math.abs(fm.top) + fm.bottom);
+      textureBitmap =Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888);
+
+      //キャンバスからビットマップを取得
+      objCanvas = new Canvas(textureBitmap);
+      objCanvas.drawRGB(255, 255, 255);
+      objCanvas.drawText(text, 0, Math.abs(fm.top), objPaint);
+    }else{
+      textureBitmap = BitmapFactory.decodeStream(context.getAssets().open(diffuseTextureAssetName));
+    }
+
+
+
+//    GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
+//    GLES20.glGenTextures(textures.length, textures, 0);
+//    GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textures[0]);
+
+//    GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR_MIPMAP_LINEAR);
+//    GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR);
+//    GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, textureBitmap, 0);
+//    GLES20.glGenerateMipmap(GLES20.GL_TEXTURE_2D);
+//    GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0);
 //
-
-      Bitmap textureBitmap;
-      if(diffuseTextureAssetName.equals("a")){
-          String text = "Draw String";
-          //描画するテキスト
-          Paint objPaint = new Paint();
-          Canvas objCanvas;
-          int textSize = 20;
-          int textWidth = textSize * text.length(), textHeight = textSize;
-
-          objPaint.setAntiAlias(true);
-          objPaint.setColor(Color.RED);
-          objPaint.setTextSize(textSize);
-          Paint.FontMetrics fm = objPaint.getFontMetrics();
-          objPaint.getTextBounds(text, 0, text.length(), new Rect(0, 0, textWidth, textHeight));
-          //テキストの表示範囲を設定
-
-          textWidth = (int) objPaint.measureText(text);
-          textHeight = (int) (Math.abs(fm.top) + fm.bottom);
-          textureBitmap =Bitmap.createBitmap(1000, 1000, Bitmap.Config.ARGB_8888);
-
-          //キャンバスからビットマップを取得
-          objCanvas = new Canvas(textureBitmap);
-          objCanvas.drawRGB(255, 255, 255);
-          objCanvas.drawText(text, 0, Math.abs(fm.top), objPaint);
-      }else{
-          textureBitmap = BitmapFactory.decodeStream(context.getAssets().open(diffuseTextureAssetName));
-      }
-
-
-
-    GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
-    GLES20.glGenTextures(textures.length, textures, 0);
-    GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textures[0]);
-
-    GLES20.glTexParameteri(
-        GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR_MIPMAP_LINEAR);
-    GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR);
-    GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, textureBitmap, 0);
-    GLES20.glGenerateMipmap(GLES20.GL_TEXTURE_2D);
-    GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0);
-
-    textureBitmap.recycle();
+//    textureBitmap.recycle();
 
     ShaderUtil.checkGLError(TAG, "Texture loading");
 
-    // Read the obj file.
-    InputStream objInputStream = context.getAssets().open(objAssetName);
-    Obj obj = ObjReader.read(objInputStream);
+//    // Read the obj file.
+//    InputStream objInputStream = context.getAssets().open(objAssetName);
+//    Obj obj = ObjReader.read(objInputStream);
+//
+//    // Prepare the Obj so that its structure is suitable for
+//    // rendering with OpenGL:
+//    // 1. Triangulate it
+//    // 2. Make sure that texture coordinates are not ambiguous
+//    // 3. Make sure that normals are not ambiguous
+//    // 4. Convert it to single-indexed data
+//    obj = ObjUtils.convertToRenderable(obj);
+//
+//    // OpenGL does not use Java arrays. ByteBuffers are used instead to provide data in a format
+//    // that OpenGL understands.
+//
+//    // Obtain the data from the OBJ, as direct buffers:
+//    IntBuffer wideIndices = ObjData.getFaceVertexIndices(obj, 3);
+//    FloatBuffer vertices = ObjData.getVertices(obj);
+//    FloatBuffer texCoords = ObjData.getTexCoords(obj, 2);
+//    FloatBuffer normals = ObjData.getNormals(obj);
+//
+//    // Convert int indices to shorts for GL ES 2.0 compatibility
+//    ShortBuffer indices =
+//            ByteBuffer.allocateDirect(2 * wideIndices.limit())
+//                    .order(ByteOrder.nativeOrder())
+//                    .asShortBuffer();
+//    while (wideIndices.hasRemaining()) {
+//      indices.put((short) wideIndices.get());
+//    }
+//    indices.rewind();
+//
+//    int[] buffers = new int[2];
+//    GLES20.glGenBuffers(2, buffers, 0);
+//    vertexBufferId = buffers[0];
+//    indexBufferId = buffers[1];
+//
+//    // Load vertex buffer
+//    verticesBaseAddress = 0;
+//    texCoordsBaseAddress = verticesBaseAddress + 4 * vertices.limit();
+//    normalsBaseAddress = texCoordsBaseAddress + 4 * texCoords.limit();
+//    final int totalBytes = normalsBaseAddress + 4 * normals.limit();
+//
+//    GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, vertexBufferId);
+//    GLES20.glBufferData(GLES20.GL_ARRAY_BUFFER, totalBytes, null, GLES20.GL_STATIC_DRAW);
+//    GLES20.glBufferSubData(GLES20.GL_ARRAY_BUFFER, verticesBaseAddress, 4 * vertices.limit(), vertices);
+//    GLES20.glBufferSubData(GLES20.GL_ARRAY_BUFFER, texCoordsBaseAddress, 4 * texCoords.limit(), texCoords);
+//    GLES20.glBufferSubData(GLES20.GL_ARRAY_BUFFER, normalsBaseAddress, 4 * normals.limit(), normals);
+//    GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, 0);
+//
+//    // Load index buffer
+//    GLES20.glBindBuffer(GLES20.GL_ELEMENT_ARRAY_BUFFER, indexBufferId);
+//    indexCount = indices.limit();
+//    GLES20.glBufferData(GLES20.GL_ELEMENT_ARRAY_BUFFER, 2 * indexCount, indices, GLES20.GL_STATIC_DRAW);
+//    GLES20.glBindBuffer(GLES20.GL_ELEMENT_ARRAY_BUFFER, 0);
+//
+//    ShaderUtil.checkGLError(TAG, "OBJ buffer load");
+//
+//    Matrix.setIdentityM(modelMatrix, 0);
 
-    // Prepare the Obj so that its structure is suitable for
-    // rendering with OpenGL:
-    // 1. Triangulate it
-    // 2. Make sure that texture coordinates are not ambiguous
-    // 3. Make sure that normals are not ambiguous
-    // 4. Convert it to single-indexed data
-    obj = ObjUtils.convertToRenderable(obj);
 
-    // OpenGL does not use Java arrays. ByteBuffers are used instead to provide data in a format
-    // that OpenGL understands.
 
-    // Obtain the data from the OBJ, as direct buffers:
-    IntBuffer wideIndices = ObjData.getFaceVertexIndices(obj, 3);
-    FloatBuffer vertices = ObjData.getVertices(obj);
-    FloatBuffer texCoords = ObjData.getTexCoords(obj, 2);
-    FloatBuffer normals = ObjData.getNormals(obj);
 
-    // Convert int indices to shorts for GL ES 2.0 compatibility
-    ShortBuffer indices =
-        ByteBuffer.allocateDirect(2 * wideIndices.limit())
-            .order(ByteOrder.nativeOrder())
-            .asShortBuffer();
-    while (wideIndices.hasRemaining()) {
-      indices.put((short) wideIndices.get());
-    }
-    indices.rewind();
 
-    int[] buffers = new int[2];
-    GLES20.glGenBuffers(2, buffers, 0);
-    vertexBufferId = buffers[0];
-    indexBufferId = buffers[1];
 
-    // Load vertex buffer
-    verticesBaseAddress = 0;
-    texCoordsBaseAddress = verticesBaseAddress + 4 * vertices.limit();
-    normalsBaseAddress = texCoordsBaseAddress + 4 * texCoords.limit();
-    final int totalBytes = normalsBaseAddress + 4 * normals.limit();
 
-    GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, vertexBufferId);
-    GLES20.glBufferData(GLES20.GL_ARRAY_BUFFER, totalBytes, null, GLES20.GL_STATIC_DRAW);
-    GLES20.glBufferSubData(
-        GLES20.GL_ARRAY_BUFFER, verticesBaseAddress, 4 * vertices.limit(), vertices);
-    GLES20.glBufferSubData(
-        GLES20.GL_ARRAY_BUFFER, texCoordsBaseAddress, 4 * texCoords.limit(), texCoords);
-    GLES20.glBufferSubData(
-        GLES20.GL_ARRAY_BUFFER, normalsBaseAddress, 4 * normals.limit(), normals);
-    GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, 0);
 
-    // Load index buffer
-    GLES20.glBindBuffer(GLES20.GL_ELEMENT_ARRAY_BUFFER, indexBufferId);
-    indexCount = indices.limit();
-    GLES20.glBufferData(
-        GLES20.GL_ELEMENT_ARRAY_BUFFER, 2 * indexCount, indices, GLES20.GL_STATIC_DRAW);
-    GLES20.glBindBuffer(GLES20.GL_ELEMENT_ARRAY_BUFFER, 0);
+    // （-0,9, -0.9)-(0.9, 0.9)の長方形頂点データ作成
+    float[] vertex_array = {-0.1f, -0.1f, -0.1f, 0.1f, 0.1f, -0.1f, 0.1f, 0.1f};
 
-    ShaderUtil.checkGLError(TAG, "OBJ buffer load");
+    // 頂点データをバッファに格納
+    ByteBuffer vt_bb = ByteBuffer.allocateDirect(vertex_array.length * 4);
+    vt_bb.order(ByteOrder.nativeOrder());
 
-    Matrix.setIdentityM(modelMatrix, 0);
+    _vertex_buffer = vt_bb.asFloatBuffer();
+    _vertex_buffer.put(vertex_array);
+    _vertex_buffer.position(0);
   }
 
   /**
@@ -294,7 +316,7 @@ public class ObjectRenderer {
    *     highlight.
    */
   public void setMaterialProperties(
-      float ambient, float diffuse, float specular, float specularPower) {
+          float ambient, float diffuse, float specular, float specularPower) {
     this.ambient = ambient;
     this.diffuse = diffuse;
     this.specular = specular;
@@ -317,43 +339,109 @@ public class ObjectRenderer {
     Matrix.multiplyMV(viewLightDirection, 0, modelViewMatrix, 0, LIGHT_DIRECTION, 0);
     normalizeVec3(viewLightDirection);
     GLES20.glUniform4f(
-        lightingParametersUniform,
-        viewLightDirection[0],
-        viewLightDirection[1],
-        viewLightDirection[2],
-        1.f);
+            lightingParametersUniform,
+            viewLightDirection[0],
+            viewLightDirection[1],
+            viewLightDirection[2],
+            1.f);
 
     GLES20.glUniform4f(
-        colorCorrectionParameterUniform,
-        colorCorrectionRgba[0],
-        colorCorrectionRgba[1],
-        colorCorrectionRgba[2],
-        colorCorrectionRgba[3]);
+            colorCorrectionParameterUniform,
+            colorCorrectionRgba[0],
+            colorCorrectionRgba[1],
+            colorCorrectionRgba[2],
+            colorCorrectionRgba[3]);
 
     // Set the object material properties.
     GLES20.glUniform4f(materialParametersUniform, ambient, diffuse, specular, specularPower);
 
-    // Attach the object texture.
-    GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
+    String text = "Draw String";
+    //描画するテキスト
+    Paint objPaint = new Paint();
+    Canvas objCanvas;
+    int textSize = 20;
+    int textWidth = textSize * text.length(), textHeight = textSize;
+
+    objPaint.setAntiAlias(true);
+    objPaint.setColor(Color.RED);
+    objPaint.setTextSize(textSize);
+    Paint.FontMetrics fm = objPaint.getFontMetrics();
+    objPaint.getTextBounds(text, 0, text.length(), new Rect(0, 0, textWidth, textHeight));
+    //テキストの表示範囲を設定
+
+    textWidth = (int) objPaint.measureText(text);
+    textHeight = (int) (Math.abs(fm.top) + fm.bottom);
+    Bitmap bitmap =Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888);
+
+    //キャンバスからビットマップを取得
+    objCanvas = new Canvas(bitmap);
+    objCanvas.drawRGB(255, 255, 255);
+    objCanvas.drawText(text, 0, Math.abs(fm.top), objPaint);
+
+
+    //GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
+    GLES20.glGenTextures(textures.length, textures, 0);
     GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textures[0]);
-    GLES20.glUniform1i(textureUniform, 0);
+    GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, bitmap, 0);
+
+    GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR);
+    GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR);
+
+    //GLES20.glGenerateMipmap(GLES20.GL_TEXTURE_2D);
+    //GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0);
+
+    bitmap.recycle();
+
+
+
+//    // gl変数texture0に0を設定
+//    GLES20.glUniform1i(textureUniform, 0);
+//
+//    // 「全体」を覆うテクスチャ座標配列を作成
+//    float[] texture_uvs = {0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, 0.0f};
+//
+//    ByteBuffer tex_bb = ByteBuffer.allocateDirect(texture_uvs.length * 4);
+//    tex_bb.order(ByteOrder.nativeOrder());
+//
+//    _texture_buffer = tex_bb.asFloatBuffer();
+//    _texture_buffer.put(texture_uvs);
+//    _texture_buffer.position(0);
+//
+//    // 長方形のテクスチャ変数設定
+//    GLES20.glEnableVertexAttribArray(texCoordAttribute);
+//    GLES20.glVertexAttribPointer(texCoordAttribute, 2, GLES20.GL_FLOAT, false, 0, _texture_buffer);
+//
+
+
+
+
+////    // Attach the object texture.
+//    GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
+//    GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textures[0]);
+//    GLES20.glUniform1i(textureUniform, 0);
 
     // Set the vertex attributes.
-    GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, vertexBufferId);
+    //GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, vertexBufferId);
 
-    GLES20.glVertexAttribPointer(
-        positionAttribute, COORDS_PER_VERTEX, GLES20.GL_FLOAT, false, 0, verticesBaseAddress);
+    GLES20.glVertexAttribPointer(positionAttribute, COORDS_PER_VERTEX, GLES20.GL_FLOAT, false, 0, verticesBaseAddress);
     GLES20.glVertexAttribPointer(normalAttribute, 3, GLES20.GL_FLOAT, false, 0, normalsBaseAddress);
-    GLES20.glVertexAttribPointer(
-        texCoordAttribute, 2, GLES20.GL_FLOAT, false, 0, texCoordsBaseAddress);
+    GLES20.glVertexAttribPointer(texCoordAttribute, 2, GLES20.GL_FLOAT, false, 0, texCoordsBaseAddress);
 
-    GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, 0);
+    //GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, 0);
 
     // Set the ModelViewProjection matrix in the shader.
     GLES20.glUniformMatrix4fv(modelViewUniform, 1, false, modelViewMatrix, 0);
     GLES20.glUniformMatrix4fv(modelViewProjectionUniform, 1, false, modelViewProjectionMatrix, 0);
 
-    // Enable vertex arrays
+
+
+    // 長方形の頂点変数設定
+    GLES20.glEnableVertexAttribArray(positionAttribute);
+    GLES20.glVertexAttribPointer(positionAttribute, 2, GLES20.GL_FLOAT, false, 0, _vertex_buffer);
+    // 長方形を描画
+    GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4);
+
+//    // Enable vertex arrays
     GLES20.glEnableVertexAttribArray(positionAttribute);
     GLES20.glEnableVertexAttribArray(normalAttribute);
     GLES20.glEnableVertexAttribArray(texCoordAttribute);
@@ -373,8 +461,8 @@ public class ObjectRenderer {
       }
     }
 
-    GLES20.glBindBuffer(GLES20.GL_ELEMENT_ARRAY_BUFFER, indexBufferId);
-    GLES20.glDrawElements(GLES20.GL_TRIANGLES, indexCount, GLES20.GL_UNSIGNED_SHORT, 0);
+   GLES20.glBindBuffer(GLES20.GL_ELEMENT_ARRAY_BUFFER, indexBufferId);
+//    GLES20.glDrawElements(GLES20.GL_TRIANGLES, indexCount, GLES20.GL_UNSIGNED_SHORT, 0);
     GLES20.glBindBuffer(GLES20.GL_ELEMENT_ARRAY_BUFFER, 0);
 
     if (blendMode != null) {
@@ -390,6 +478,7 @@ public class ObjectRenderer {
     GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0);
 
     ShaderUtil.checkGLError(TAG, "After draw");
+
   }
 
   private static void normalizeVec3(float[] v) {
@@ -399,3 +488,5 @@ public class ObjectRenderer {
     v[2] *= reciprocalLength;
   }
 }
+
+
