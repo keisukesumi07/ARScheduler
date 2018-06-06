@@ -126,9 +126,9 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
     private ListView mListView;
     private TaskAdapter mTaskAdapter;
 
-    Global global;
 
     Handler mHandler;
+    AlarmReceiver alm;
 
 
 
@@ -159,12 +159,10 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
     private final ArrayList<Anchor> anchors = new ArrayList<>();
 
 
-    FrameLayout frameLayout;
-    LinearLayout linearLayout;
     ListView listView;
+    Context cons;
 
 
-    boolean test=false;
 
 
 
@@ -193,6 +191,8 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
 
         //floatボタンのメニューの登録
         findViewById(R.id.fab).setOnClickListener(addlistClickListener);
+        //floatボタンのメニューの登録
+        findViewById(R.id.fab2).setOnClickListener(checklistClickListener);
 
 
 
@@ -201,86 +201,16 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
         mRealm = Realm.getDefaultInstance();
         mRealm.addChangeListener(mRealmListener);
 
-         //ListViewの設定
+        //ListViewの設定
         mTaskAdapter = new TaskAdapter(MainActivity.this);
-        //mListView = (ListView) findViewById(R.id.listView1);
-//
-//        // ListViewをタップしたときの処理
-//        mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-//            @Override
-//            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-//                // 入力・編集する画面に遷移させる
-//                Task task = (Task) parent.getAdapter().getItem(position);
-//
-//                Intent intent = new Intent(MainActivity.this, InputActivity.class);
-//                intent.putExtra(EXTRA_TASK, task.getId());
-//
-//                startActivity(intent);
-//            }
-//        });
-//
-//
-//        // ListViewを長押ししたときの処理
-//        mListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-//            @Override
-//            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-//
-//                // タスクを削除する
-//
-//                final Task task = (Task) parent.getAdapter().getItem(position);
-//
-//                // ダイアログを表示する
-//                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-//
-//                builder.setTitle("削除");
-//                builder.setMessage(task.getTitle() + "を削除しますか");
-//                builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-//                    @Override
-//                    public void onClick(DialogInterface dialog, int which) {
-//
-//                        RealmResults<Task> results = mRealm.where(Task.class).equalTo("id", task.getId()).findAll();
-//
-//                        mRealm.beginTransaction();
-//                        results.deleteAllFromRealm();
-//                        mRealm.commitTransaction();
-//
-//                        Intent resultIntent = new Intent(getApplicationContext(), TaskAlarmReceiver.class);
-//                        PendingIntent resultPendingIntent = PendingIntent.getBroadcast(
-//                                MainActivity.this,
-//                                task.getId(),
-//                                resultIntent,
-//                                PendingIntent.FLAG_UPDATE_CURRENT
-//                        );
-//
-//                        AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
-//                        alarmManager.cancel(resultPendingIntent);
-//
-//                        reloadListView();
-//                    }
-//                });
-//                builder.setNegativeButton("CANCEL", null);
-//
-//                AlertDialog dialog = builder.create();
-//                dialog.show();
-//
-//                return true;
-//            }
-//        });
-
-        //reloadListView();
-
-
-
-
-
 
 
 
         //該当のIntentに反応するようにReceiverにIntentFilterを登録
         IntentFilter filter = new IntentFilter();
         filter.addAction(ACTION_SET_CLANENDER);
-        registerReceiver(new AlarmReceiver(), filter);
-
+        alm = new AlarmReceiver();
+        registerReceiver(alm, filter);
 
         ButterKnife.bind(this);
 
@@ -290,12 +220,14 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
         listView = (ListView)findViewById(R.id.list_comment);
         list = new ArrayList<String>();
 
+        list.add("tests");
+
         //adapter
-        adapter = new CommentAdapter(this,list);
+        adapter = new CommentAdapter(MainActivity.this,list);
         listView.setAdapter(adapter);
+        list.clear();
+        adapter.notifyDataSetChanged();
 
-
-        thisactivity=this;
         installRequested = false;
     }
 
@@ -305,17 +237,27 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
     View.OnClickListener addlistClickListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            Intent intent = new Intent(thisactivity, InputActivity.class);
+            Intent intent = new Intent(MainActivity.this, InputActivity.class);
             startActivityForResult(intent, RC_PASSCHANGE);
+        }
+    };
+
+    View.OnClickListener checklistClickListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            Intent intent = new Intent(MainActivity.this, TaskManagement.class);
+            startActivity(intent);
         }
     };
 
     @Override
     protected void onResume() {
         super.onResume();
-
-        adapter.notifyDataSetChanged();
+        cons=this;
         listView.setAdapter(adapter);
+        adapter.notifyDataSetChanged();
+
+
 
 
 
@@ -426,8 +368,8 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
             backgroundRenderer.createOnGlThread(/*context=*/ this);
             planeRenderer.createOnGlThread(/*context=*/ this, "models/trigrid.png");
             pointCloudRenderer.createOnGlThread(/*context=*/ this);
-            virtualObject.createOnGlThread(/*context=*/ this, "models/andy.obj", "models/doraemon.png");
-            virtualObject.setMaterialProperties(0.0f, 2.0f, 0.5f, 6.0f);
+            virtualObject.createOnGlThread(/*context=*/ this, "models/andy.obj", "a");
+            virtualObject.setMaterialProperties(1.0f, 0.0f, 0.0f, 1.0f);
 
             virtualObjectShadow.createOnGlThread(this, "models/andy_shadow.obj", "models/andy_shadow.png");
             virtualObjectShadow.setBlendMode(BlendMode.Shadow);
@@ -447,14 +389,15 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
     @Override
     public void onDrawFrame(GL10 gl) {
 
-
-
         mHandler = new Handler(Looper.getMainLooper());
         mHandler.post(new Runnable() {
             @Override
             public void run() {
                 // ここに処理
+                Log.d("a","test");
+                adapter = new CommentAdapter(MainActivity.this,list);
                 listView.setAdapter(adapter);
+                adapter.notifyDataSetChanged();
             }
         });
 
@@ -582,29 +525,14 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
 
 
 
-//    private void reloadListView() {
-//        // Realmデータベースから、「全てのデータを取得して新しい日時順に並べた結果」を取得
-//        RealmResults<Task> taskRealmResults = mRealm.where(Task.class).findAllSorted("date", Sort.DESCENDING);
-//        // 上記の結果を、TaskList としてセットする
-//        mTaskAdapter.setTaskList(mRealm.copyFromRealm(taskRealmResults));
-//        // TaskのListView用のアダプタに渡す
-//        mListView.setAdapter(mTaskAdapter);
-//        // 表示を更新するために、アダプターにデータが変更されたことを知らせる
-//        mTaskAdapter.notifyDataSetChanged();
-//    }
-
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        unregisterReceiver(alm);
 
         mRealm.close();
     }
-
-
-
-
-
 
 
 
@@ -613,23 +541,25 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if(requestCode==RC_PASSCHANGE){
 
-            Long calender=data.getLongExtra("calender",0);
-            int id = data.getIntExtra("id",0);
+            if(resultCode==RESULT_OK){
+                Long calender=data.getLongExtra("calender",0);
+                int id = data.getIntExtra("id",0);
 
 
-            Context context = this;
-            //AlarmManagerを取得
-            AlarmManager am = (AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
+                Context context = this;
+                //AlarmManagerを取得
+                AlarmManager am = (AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
 
-            //PendingIntentを作成
-            Intent intent = new Intent();
-            intent.setAction(ACTION_SET_CLANENDER);
-            intent.putExtra("id",id);
-            PendingIntent pendingIntent = PendingIntent.getBroadcast(this, id, intent, PendingIntent.FLAG_CANCEL_CURRENT);
+                //PendingIntentを作成
+                Intent intent = new Intent();
+                intent.setAction(ACTION_SET_CLANENDER);
+                intent.putExtra("id",id);
+                PendingIntent pendingIntent = PendingIntent.getBroadcast(this, id, intent, PendingIntent.FLAG_CANCEL_CURRENT);
 
-            //AlarmManagerにPendingIntentを登録
-            am.set(AlarmManager.RTC_WAKEUP, calender, pendingIntent);
+                //AlarmManagerにPendingIntentを登録
+                am.set(AlarmManager.RTC_WAKEUP, calender, pendingIntent);
 
+            }
         }
 
     }
@@ -663,16 +593,17 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
                     @Override
                     public void run() {
                         list.add(str);
-                        adapter = new CommentAdapter(context,list);
+                        adapter = new CommentAdapter(MainActivity.this,list);
                         listView.setAdapter(adapter);
                         adapter.notifyDataSetChanged();
                     }
                 });
 
-                Toast.makeText(context, "onReceive", Toast.LENGTH_SHORT).show();
+                //Toast.makeText(context, "onReceive", Toast.LENGTH_SHORT).show();
             }
         }
     }
+
 
 
 }
