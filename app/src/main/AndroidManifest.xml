@@ -30,14 +30,18 @@
 
         <activity
             android:name=".InputActivity"
-            android:label="タスク"
-            android:theme="@style/AppTheme2"
+            android:theme="@style/AppTheme"
             android:parentActivityName=".MainActivity"
             android:screenOrientation="landscape"
             >
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value=".MainActivity"/>
+        </activity>
+
+        <activity
+            android:name=".TaskManagement"
+            android:theme="@style/AppTheme"
+            android:parentActivityName=".MainActivity"
+            android:screenOrientation="landscape"
+            >
         </activity>
         <meta-data android:name="com.google.ar.core" android:value="required" />
     </application>

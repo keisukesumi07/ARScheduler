@@ -57,6 +57,7 @@ public class CommentAdapter extends BaseAdapter {
 
     @Override
     public View getView(int position, View view, ViewGroup parent) {
+        Log.d("a","test2");
         if (view == null) {
             view = mInflater.inflate(R.layout.list_item_viewer, null);
             views=view;
