@@ -129,11 +129,6 @@ public class TaskManagement extends Activity {
                         //AlarmManagerにPendingIntentを登録
                         am.cancel(pendingIntent);
 
-
-
-
-
-
                         reloadListView();
                     }
                 });
@@ -155,11 +150,8 @@ public class TaskManagement extends Activity {
     private void reloadListView() {
         // Realmデータベースから、「全てのデータを取得して新しい日時順に並べた結果」を取得
         RealmResults<Task> taskRealmResults = mRealm.where(Task.class).findAllSorted("date", Sort.DESCENDING);
-        // 上記の結果を、TaskList としてセットする
         mTaskAdapter.setTaskList(mRealm.copyFromRealm(taskRealmResults));
-        // TaskのListView用のアダプタに渡す
         mListView.setAdapter(mTaskAdapter);
-        // 表示を更新するために、アダプターにデータが変更されたことを知らせる
         mTaskAdapter.notifyDataSetChanged();
     }
 
@@ -168,16 +160,12 @@ public class TaskManagement extends Activity {
     View.OnClickListener serchbuttonClickListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            EditText serchtext=findViewById(R.id.serchtext);
             // Realmデータベースから、「全てのデータを取得して新しい日時順に並べた結果」を取得
+            EditText serchtext=findViewById(R.id.serchtext);
             RealmResults<Task> taskRealmResults = mRealm.where(Task.class).equalTo("category", serchtext.getText().toString()).findAllSorted("date", Sort.DESCENDING);
-            // 上記の結果を、TaskList としてセットする
             mTaskAdapter.setTaskList(mRealm.copyFromRealm(taskRealmResults));
-            // TaskのListView用のアダプタに渡す
             mListView.setAdapter(mTaskAdapter);
-            // 表示を更新するために、アダプターにデータが変更されたことを知らせる
             mTaskAdapter.notifyDataSetChanged();
-
         }
     };
 
@@ -185,11 +173,8 @@ public class TaskManagement extends Activity {
     private void retrievalListView() {
         // Realmデータベースから、「全てのデータを取得して新しい日時順に並べた結果」を取得
         RealmResults<Task> taskRealmResults = mRealm.where(Task.class).equalTo("category", 1).findAllSorted("date", Sort.DESCENDING);
-        // 上記の結果を、TaskList としてセットする
         mTaskAdapter.setTaskList(mRealm.copyFromRealm(taskRealmResults));
-        // TaskのListView用のアダプタに渡す
         mListView.setAdapter(mTaskAdapter);
-        // 表示を更新するために、アダプターにデータが変更されたことを知らせる
         mTaskAdapter.notifyDataSetChanged();
     }
 

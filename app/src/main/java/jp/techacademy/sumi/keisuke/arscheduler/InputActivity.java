@@ -296,7 +296,10 @@ public class InputActivity extends AppCompatActivity {
 
 
         String str=String.format("%02d", mHour)+":"+ String.format("%02d", mMinute);
-        mTask.setDate2(str);
+        mTask.setDatestr(str);
+
+        String estr=String.format("%02d", emHour)+":"+ String.format("%02d", emMinute);
+        mTask.seteDatestr(estr);
 
         realm.copyToRealmOrUpdate(mTask);
         realm.commitTransaction();

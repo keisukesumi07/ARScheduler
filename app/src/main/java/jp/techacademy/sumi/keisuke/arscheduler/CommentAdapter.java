@@ -9,6 +9,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -29,8 +31,6 @@ public class CommentAdapter extends BaseAdapter {
     private final LayoutInflater mInflater;
     private final ArrayList<String> list;
 
-    View views;
-    LinearLayout linesr;
 
     public CommentAdapter(Context context, ArrayList<String> list) {
         this.list = list;
@@ -57,10 +57,8 @@ public class CommentAdapter extends BaseAdapter {
 
     @Override
     public View getView(int position, View view, ViewGroup parent) {
-        Log.d("a","test2");
         if (view == null) {
             view = mInflater.inflate(R.layout.list_item_viewer, null);
-            views=view;
         }
 
         TextView textView = view.findViewById(R.id.text_user_comment);
@@ -70,27 +68,11 @@ public class CommentAdapter extends BaseAdapter {
         String item = getItem(position);
         textView.setText(item);
 
+        Animation anime = AnimationUtils.loadAnimation(parent.getContext(), R.anim.alpha_fadein);
+        view.startAnimation(anime);
+
+
 
         return view;
     }
-
-
-
-
-
-    //ここから追加
-    public void add(final String data){
-        new Handler(Looper.getMainLooper()).post(new Runnable(){
-            @Override
-            public void run() {
-                if(list.add(data)){
-                    notifyDataSetChanged();
-                }
-            }
-        });
-    }
-
-
-
-
 }

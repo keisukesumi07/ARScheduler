@@ -10,7 +10,7 @@ public class Task extends RealmObject implements Serializable {
     private String title; // タイトル
     private String contents,category; // 内容
     private Date date,edate; // 日時
-    private String place,date2;
+    private String place,datestr,edatestr;
 
     // id をプライマリーキーとして設定
     @PrimaryKey
@@ -56,12 +56,12 @@ public class Task extends RealmObject implements Serializable {
         this.date = date;
     }
 
-    public String getDate2() {
-        return date2;
+    public String getDatestr() {
+        return edatestr;
     }
 
-    public void setDate2(String date) {
-        this.date2 = date;
+    public void setDatestr(String date) {
+        this.edatestr = date;
     }
 
     public Date geteDate() {
@@ -72,6 +72,13 @@ public class Task extends RealmObject implements Serializable {
         this.edate = date;
     }
 
+    public String geteDatestr() {
+        return edatestr;
+    }
+
+    public void seteDatestr(String date) {
+        this.edatestr = date;
+    }
 
     public int getId() {
         return id;
