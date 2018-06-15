@@ -29,7 +29,7 @@ public class InputActivity extends AppCompatActivity {
 
     private int mYear, mMonth, mDay, mHour, mMinute,emYear, emMonth, emDay,emHour, emMinute;
     private Button mDateButton, mTimeButton,emTimeButton;
-    private EditText mTitleEdit, mContentEdit,mCategoryEdit,mPlaceEdit;
+    private EditText mTitleEdit, mContentEdit,mPlaceEdit;
     private Task mTask;
     int sHour,sMinute;
 
@@ -110,10 +110,9 @@ public class InputActivity extends AppCompatActivity {
         findViewById(R.id.done_button).setOnClickListener(mOnDoneClickListener);
         mTitleEdit = (EditText)findViewById(R.id.title_edit_text);
         mContentEdit = (EditText)findViewById(R.id.content_edit_text);
-        mCategoryEdit=(EditText)findViewById(R.id.category_edit_text);
         mPlaceEdit=(EditText)findViewById(R.id.place_edit_text);
 
-        // EXTRA_TASK から Task の id を取得して、 id から Task のインスタンスを取得する
+
         Intent intent = getIntent();
         int taskId = intent.getIntExtra(MainActivity.EXTRA_TASK, -1);
         Realm realm = Realm.getDefaultInstance();
@@ -140,15 +139,9 @@ public class InputActivity extends AppCompatActivity {
             if(mTask.getTitle()!=null){
                 mTitleEdit.setText(mTask.getTitle());
             }
-
             if(mTask.getContents()!=null){
                 mContentEdit.setText(mTask.getContents());
             }
-
-            if(mTask.getCategory()!=null){
-                mCategoryEdit.setText(mTask.getCategory());
-            }
-
             if(mTask.getPlace()!=null){
                 mPlaceEdit.setText(mTask.getPlace());
             }
@@ -185,7 +178,6 @@ public class InputActivity extends AppCompatActivity {
 
         EditText edit1 = (EditText) findViewById(R.id.title_edit_text);
         EditText edit2 = (EditText) findViewById(R.id.content_edit_text);
-        EditText edit3 = (EditText) findViewById(R.id.category_edit_text);
         EditText edit4 = (EditText) findViewById(R.id.place_edit_text);
 
         edit1.setOnKeyListener(new View.OnKeyListener() {
@@ -219,21 +211,6 @@ public class InputActivity extends AppCompatActivity {
             }
         });
 
-        edit3.setOnKeyListener(new View.OnKeyListener() {
-            @Override
-            public boolean onKey(View v, int keyCode, KeyEvent event) {
-
-                if (event.getAction() == KeyEvent.ACTION_DOWN
-                        && keyCode == KeyEvent.KEYCODE_ENTER) {
-
-                    InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-                    inputMethodManager.hideSoftInputFromWindow(v.getWindowToken(), 0);
-
-                    return true;
-                }
-                return false;
-            }
-        });
 
 
         edit4.setOnKeyListener(new View.OnKeyListener() {
@@ -279,27 +256,33 @@ public class InputActivity extends AppCompatActivity {
 
         String title = mTitleEdit.getText().toString();
         String content = mContentEdit.getText().toString();
-        String category = mCategoryEdit.getText().toString();
         String place = mPlaceEdit.getText().toString();
 
-        mTask.setTitle(title);
+        if(title.length()==0){
+            mTask.setTitle("タイトルなし");
+        }else{
+            mTask.setTitle(title);
+        }
+
         mTask.setContents(content);
-        mTask.setCategory(category);
         mTask.setPlace(place);
         GregorianCalendar calendar = new GregorianCalendar(mYear,mMonth,mDay,mHour,mMinute);
         Date date = calendar.getTime();
         GregorianCalendar ecalendar = new GregorianCalendar(emYear,emMonth,emDay,emHour,emMinute);
         Date edate = ecalendar.getTime();
         mTask.setDate(date);
-        mTask.seteDate(edate);
-
-
-
         String str=String.format("%02d", mHour)+":"+ String.format("%02d", mMinute);
         mTask.setDatestr(str);
 
         String estr=String.format("%02d", emHour)+":"+ String.format("%02d", emMinute);
         mTask.seteDatestr(estr);
+        mTask.seteDate(edate);
+
+
+
+
+
+
 
         realm.copyToRealmOrUpdate(mTask);
         realm.commitTransaction();

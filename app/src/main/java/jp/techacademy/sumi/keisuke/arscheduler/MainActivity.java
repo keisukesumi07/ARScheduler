@@ -1,22 +1,5 @@
 package jp.techacademy.sumi.keisuke.arscheduler;
 
-/*
- * Copyright 2017 Google Inc. All Rights Reserved.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-import android.app.Activity;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
@@ -29,31 +12,14 @@ import android.os.Handler;
 import android.os.Looper;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.v7.app.AppCompatActivity;
-
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.ListView;
-import android.widget.Toast;
-
-
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import jp.techacademy.sumi.keisuke.arscheduler.common.helpers.CameraPermissionHelper;
-
-
-
 import java.util.ArrayList;
 import io.realm.Realm;
-import io.realm.RealmChangeListener;
 
-
-import android.os.SystemClock;
-
-/**
- * This is a simple example that shows how to create an augmented reality (AR) application using the
- * ARCore API. The application will display any detected planes and will allow the user to tap on a
- * plane to place a 3d model of the Android robot.
- */
 public class MainActivity extends AppCompatActivity{
 
     @BindView(R.id.list_comment)
@@ -70,35 +36,16 @@ public class MainActivity extends AppCompatActivity{
     public final static String EXTRA_TASK = "jp.techacademy.sumi.keisuke.taskapp.TASK";
     private static final String ACTION_SET_CLANENDER = "com.android.example.ACTION_SET_CLANENDER";
 
-    private Realm mRealm;
-    private RealmChangeListener mRealmListener = new RealmChangeListener() {
-        @Override
-        public void onChange(Object element) {
-            //reloadListView();
-        }
-    };
     private ListView mListView;
     private TaskAdapter mTaskAdapter;
-
-
     Handler mHandler;
     AlarmReceiver alm;
-
-
-
-
     private static final String TAG = MainActivity.class.getSimpleName();
-
-
-
 
     ListView listView;
     Context cons;
 
-
-    // カメラインスタンス
     private Camera mCam = null;
-    // カメラプレビュークラス
     private CameraPreview mCamPreview = null;
 
 
@@ -110,10 +57,10 @@ public class MainActivity extends AppCompatActivity{
         setContentView(R.layout.activity_main);
 
 
-        if (!CameraPermissionHelper.hasCameraPermission(this)) {
-            CameraPermissionHelper.requestCameraPermission(this);
-            return;
-        }
+
+        // Realmの設定
+        Realm.init(this);
+
 
         //floatボタンのメニューの登録
         findViewById(R.id.fab).setOnClickListener(addlistClickListener);
@@ -121,10 +68,7 @@ public class MainActivity extends AppCompatActivity{
         findViewById(R.id.fab2).setOnClickListener(checklistClickListener);
 
 
-        // Realmの設定
-        Realm.init(this);
-        mRealm = Realm.getDefaultInstance();
-        mRealm.addChangeListener(mRealmListener);
+
 
         //ListViewの設定
         mTaskAdapter = new TaskAdapter(MainActivity.this);
@@ -203,24 +147,12 @@ public class MainActivity extends AppCompatActivity{
         }
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] results) {
-        if (!CameraPermissionHelper.hasCameraPermission(this)) {
-            Toast.makeText(this, "Camera permission is needed to run this application", Toast.LENGTH_LONG)
-                    .show();
-            if (!CameraPermissionHelper.shouldShowRequestPermissionRationale(this)) {
-                // Permission denied with checking "Do not ask again".
-                CameraPermissionHelper.launchPermissionSettings(this);
-            }
-            finish();
-        }
-    }
+
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
         unregisterReceiver(alm);
-        mRealm.close();
     }
 
 
@@ -238,14 +170,10 @@ public class MainActivity extends AppCompatActivity{
                 Context context = this;
                 //AlarmManagerを取得
                 AlarmManager am = (AlarmManager)context.getSystemService(Context.ALARM_SERVICE);
-
-                //PendingIntentを作成
                 Intent intent = new Intent();
                 intent.setAction(ACTION_SET_CLANENDER);
                 intent.putExtra("id",id);
                 PendingIntent pendingIntent = PendingIntent.getBroadcast(this, id, intent, PendingIntent.FLAG_CANCEL_CURRENT);
-
-                //AlarmManagerにPendingIntentを登録
                 am.set(AlarmManager.RTC_WAKEUP, calender, pendingIntent);
 
             }
@@ -271,10 +199,7 @@ public class MainActivity extends AppCompatActivity{
 
                 Realm realm = Realm.getDefaultInstance();
                 mTask = realm.where(Task.class).equalTo("id", id).findFirst();
-
                 str=mTask.getDatestr()+"~"+mTask.geteDatestr()+"  場所:"+mTask.getPlace()+"\n"+mTask.getTitle()+"\n"+mTask.getContents();
-
-
                 realm.close();
 
                 mHandler = new Handler(Looper.getMainLooper());
@@ -288,7 +213,7 @@ public class MainActivity extends AppCompatActivity{
                     }
                 });
                 final String tmstr=str;
-                // 3秒後に処理を実行する
+                // 10分後にタスクの表示を終了
                 new Handler().postDelayed(new Runnable() {
                     @Override
                     public void run() {
@@ -296,13 +221,10 @@ public class MainActivity extends AppCompatActivity{
                         list.remove(list.indexOf(tmstr));
                         adapter.notifyDataSetChanged();
                     }
-                }, 30000);
+                }, 600000);
             }
         }
     }
-
-
-
 }
 
 

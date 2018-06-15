@@ -118,15 +118,9 @@ public class TaskManagement extends Activity {
                         mRealm.commitTransaction();
 
 
-
-                        //AlarmManagerを取得
                         AlarmManager am = (AlarmManager)TaskManagement.this.getSystemService(Context.ALARM_SERVICE);
-
-                        //PendingIntentを作成
                         Intent intent = new Intent();
                         PendingIntent pendingIntent = PendingIntent.getBroadcast(TaskManagement.this, task.getId(), intent, PendingIntent.FLAG_UPDATE_CURRENT);
-
-                        //AlarmManagerにPendingIntentを登録
                         am.cancel(pendingIntent);
 
                         reloadListView();
